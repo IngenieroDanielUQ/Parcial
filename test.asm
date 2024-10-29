@@ -2,9 +2,9 @@ section .bss
 
 	; Espacios en la memoria reservados para almacenar los valores introducidos por el usuario y el resultado de la operacion.
 
-	opcion:		resb 	5
+	opcion:		resb	5
 	num1:		resb	5
-	num2:		resb 	5
+	num2:		resb	5
 	resultado:	resb 	5
 
 section .data
@@ -12,32 +12,20 @@ section .data
 	msg1		db		10,'-Calculadora-',10,0
 	lmsg1		equ		$ - msg1
 
-	msg2		db		10,'Numero 1: ',0
+	msg2		db		10,'Ingrese el primer operando: ',0
 	lmsg2		equ		$ - msg2
 
-	msg3		db		'Numero 2: ',0
+	msg3		db		'Ingrese el segundo operando: ',0
 	lmsg3		equ		$ - msg3
 
-	msg4		db		10,'1. Sumar',10,0
-	lmsg4		equ		$ - msg4
+	operacion	db		'Ingrese la operacion que gusta realizar (1 - Sumar) (2 - Restar) (3 - Multiplicar) (4 - Dividir) o (5) para salir del programa: ',0
+	loperacion	equ		$ - operacion
 
-	msg5		db		'2. Restar',10,0
+	msg5		db		10,'Resultado: ',0
 	lmsg5		equ		$ - msg5
 
-	msg6		db		'3. Multiplicar',10,0
+	msg6		db		10,'Opcion Invalida',10,0
 	lmsg6		equ		$ - msg6
-
-	msg7		db		'4. Dividir',10,0
-	lmsg7		equ		$ - msg7
-
-	msg8		db		'Operacion: ',0
-	lmsg8		equ		$ - msg8
-
-	msg9		db		10,'Resultado: ',0
-	lmsg9		equ		$ - msg9
-
-	msg10		db		10,'Opcion Invalida',10,0
-	lmsg10		equ		$ - msg10
 
 	nlinea		db		10,10,0
 	lnlinea		equ		$ - nlinea
@@ -48,74 +36,46 @@ section .text
 
 _start:
 
-	; Imprimimos en pantalla el mensaje 1
+	; Imprimimos en pantalla el mensaje 1 que es para presentar la calculadora
 	mov eax, 4
 	mov ebx, 1
 	mov ecx, msg1
 	mov edx, lmsg1
 	int 80h
 
-	; Imprimimos en pantalla el mensaje 2
+	; Imprimimos en pantalla el mensaje 2 que solicita el primer operando de la calculadora
 	mov eax, 4
 	mov ebx, 1
 	mov ecx, msg2
 	mov edx, lmsg2
 	int 80h
 
-	; Obtenemos el numero 1
+	; Obtenemos el primer operando
 	mov eax, 3
 	mov ebx, 0
 	mov ecx, num1
 	mov edx, 5
 	int 80h
 
-	; Imprimimos en pantalla el mensaje 3
+	; Imprimimos en pantalla el mensaje 3 para solicitar el segundo operando de la calculadora
 	mov eax, 4
 	mov ebx, 1
 	mov ecx, msg3
 	mov edx, lmsg3
 	int 80h
 
-	; Obtenemos el numero 2
+	; Obtenemos el segundo operando
 	mov eax, 3
 	mov ebx, 0
 	mov ecx, num2
 	mov edx, 5
 	int 80h
 
-	; Imprimimos en pantalla el mensaje 4
+	; Imprimimos en pantalla la operacion que el usuario elija
 	mov eax, 4
 	mov ebx, 1
-	mov ecx, msg4
-	mov edx, lmsg4
-	int 80h
-
-	; Imprimimos en pantalla el mensaje 5
-	mov eax, 4
-	mov ebx, 1
-	mov ecx, msg5
-	mov edx, lmsg5
-	int 80h
-
-	; Imprimimos en pantalla el mensaje 6
-	mov eax, 4
-	mov ebx, 1
-	mov ecx, msg6
-	mov edx, lmsg6
-	int 80h
-
-	; Imprimimos en pantalla el mensaje 7
-	mov eax, 4
-	mov ebx, 1
-	mov ecx, msg7
-	mov edx, lmsg7
-	int 80h
-
-	; Print on screen the message 8
-	mov eax, 4
-	mov ebx, 1
-	mov ecx, msg8
-	mov edx, lmsg8
+	mov ecx, operacion
+	mov edx, loperacion
 	int 80h
 
 	; Obtenemos la opcion seleccionada por el usuario
@@ -143,72 +103,55 @@ _start:
 	cmp ah, 4
 	je dividir
 
+	cmp ah, 5
+	je salir
+
 	; Si el valor ingresado no cumple con ninguna de las condiciones anteriores entonces mostramos un mensaje de error y finalizamos
 	; la ejecucion del programa
 	mov eax, 4
 	mov ebx, 1
-	mov ecx, msg10
-	mov edx, lmsg10
+	mov ecx, msg6
+	mov edx, lmsg6
 	int 80h
 
-	jmp salir
+	jmp _start
 
 sumar:
 
-    ; Inicializar registros
-    xor ecx, ecx  ; Para llevar la cuenta de la suma
-    xor eax, eax   ; "EAX" para el resultado final
-    xor ebx, ebx   ; "EBX" como auxiliar
+	; Movemos los numeros ingresados a los registro AL y BL
+	mov al, [num1]
+	mov bl, [num2]
 
-    ; Convertir num1
-    mov edi, num1
+	; Convertimos los valores ingresados de ascii a decimal
+	sub al, '0'
+	sub bl, '0'
 
-.next_digit1:
+	; Sumamos el registro AL y BL
+	add al, bl
 
-    movzx ebx, byte [edi] ; Cargar el siguiente carácter de num1
-    cmp ebx, 0            ; Verificar si llegamos al final de la cadena
-    je .end_num1
-    sub ebx, '0'          ; Convertir de "Ascci" a decimal
-    imul eax, eax, 10     ; Desplazar el resultado a la izquierda (multiplicar por 10)
-    add eax, ebx          ; Sumar el dígito
-    inc edi               ; Ir al siguiente carácter
-    jmp .next_digit1
+	; Convertimos el resultado de la suma de decimal a ascii
+	add al, '0'
 
-.end_num1:
+	; Movemos el resultado a un espacio reservado en la memoria
+	mov [resultado], al
 
-    ; Convertir num2
-    xor ebx, ebx          ; Limpiar "EBX"
-    mov edi, num2
+	; Imprimimos en pantalla el mensaje de resultado
+	mov eax, 4
+	mov ebx, 1
+	mov ecx, msg5
+	mov edx, lmsg5
+	int 80h
 
-.next_digit2:
+	; Imprimimos en pantalla el resultado
+	mov eax, 4
+	mov ebx, 1
+	mov ecx, resultado
+	mov edx, 2
+	int 80h
 
-    movzx ebx, byte [edi] ; Cargar el siguiente carácter de num2
-    cmp ebx, 0            ; Verificar si llegamos al final de la cadena
-    je .end_num2
-    sub ebx, '0'          ; Convertir de "ASCII" a decimal
-    imul eax, eax, 10     ; Desplazar el resultado a la izquierda (multiplicar por 10)
-    add eax, ebx          ; Sumar el dígito
-    inc edi               ; Ir al siguiente carácter
-    jmp .next_digit2
+	; Reiniciamos el programa
+	jmp _start
 
-.end_num2:
-
-    ; Almacenar el resultado en el buffer
-    mov edi, resultado
-    mov ecx, 0            ; Contador de dígitos
-
-.convert_to_ascii:
-    xor edx, edx          ; Limpiar "EDX"
-    mov ebx, 10
-    div ebx               ; Dividir "EAX" entre 10
-    add edx, '0'          ; Convertir el residuo a "ASCII"
-    mov [edi + ecx], dl   ; Almacenar el dígito en el buffer
-    inc ecx               ; Incrementar el contador de dígitos
-    test eax, eax         ; Verificar si "EAX" es cero
-    jnz .convert_to_ascii ; Repetir si no es cero
-    mov byte [edi + ecx], 0 ; Terminar la cadena con un nulo
-
-    ret
 
 restar:
 	; Movemos los numeros ingresados a los registro AL y BL
@@ -228,11 +171,11 @@ restar:
 	; Movemos el resultado a un espacio reservado en la memoria
 	mov [resultado], al
 
-	; Imprimimos en pantalla el mensaje 9
+	; Imprimimos en pantalla el mensaje de resultado
 	mov eax, 4
 	mov ebx, 1
-	mov ecx, msg9
-	mov edx, lmsg9
+	mov ecx, msg5
+	mov edx, lmsg5
 	int 80h
 
 	; Imprimimos en pantalla el resultado
@@ -242,8 +185,8 @@ restar:
 	mov edx, 1
 	int 80h
 
-	; Finalizamos el programa
-	jmp salir
+	; Reiniciamos el programa
+	jmp _start
 
 multiplicar:
 
@@ -264,11 +207,11 @@ multiplicar:
 	; Movemos el resultado a un espacio reservado en la memoria
 	mov [resultado], ax
 
-	; Imprimimos en pantalla el mensaje 9
+	; Imprimimos en pantalla el mensaje de resultado
 	mov eax, 4
 	mov ebx, 1
-	mov ecx, msg9
-	mov edx, lmsg9
+	mov ecx, msg5
+	mov edx, lmsg5
 	int 80h
 
 	; Imprimimos en pantalla el resultado
@@ -278,8 +221,8 @@ multiplicar:
 	mov edx, 1
 	int 80h
 
-	; Finalizamos el programa
-	jmp salir
+	; Reiniciamos el programa
+	jmp _start
 
 dividir:
 
@@ -304,11 +247,11 @@ dividir:
 	; Movemos el resultado a un espacio reservado en la memoria
 	mov [resultado], ax
 
-	; Print on screen the message 9
+	; Print on screen the message de resultado
 	mov eax, 4
 	mov ebx, 1
-	mov ecx, msg9
-	mov edx, lmsg9
+	mov ecx, msg5
+	mov edx, lmsg5
 	int 80h
 
 	; Imprimimos en pantalla el resultado
@@ -318,8 +261,8 @@ dividir:
 	mov edx, 1
 	int 80h
 
-	; Finalizamos el programa
-	jmp salir
+	; Reiniciamos el programa
+	jmp _start
 
 salir:
 	; Imprimimos en pantalla dos nuevas lineas
