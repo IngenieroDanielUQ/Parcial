@@ -1,0 +1,3 @@
+Parcial desarrollado por: Hector Daniel Gonzalez Sanchez
+
+Se agradece por comentarios que ayuden al mejoramiento del desarrollo de codigo, y que fomenten las buenas practicas...
